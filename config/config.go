@@ -1,13 +1,33 @@
 package config
 
-import "go.uber.org/fx"
+import (
+	"io/ioutil"
 
-type Config interface{}
+	"go.uber.org/fx"
+	"gopkg.in/yaml.v3"
+)
 
-type config struct{}
+type DbConfig struct {
+	Host     string `yaml:"host"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DbName   string `yaml:"dbname"`
+	Port     string `yaml:"port"`
+}
 
-func New() (Config, error) {
-	return config{}, nil
+type Config struct {
+	Db     *DbConfig `yaml:"db"`
+	IsProd bool      `yaml:"prod"`
+}
+
+func New() (*Config, error) {
+	yamlFile, err := ioutil.ReadFile("config/config.yaml")
+	if err != nil {
+		return nil, err
+	}
+	conf := Config{}
+	err = yaml.Unmarshal(yamlFile, &conf)
+	return &conf, err
 }
 
 var Module = fx.Provide(
