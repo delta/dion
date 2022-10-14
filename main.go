@@ -8,6 +8,7 @@ import (
 	"delta.nitt.edu/dion/middlewares"
 	"delta.nitt.edu/dion/models"
 	"delta.nitt.edu/dion/repository"
+	"delta.nitt.edu/dion/router"
 	"delta.nitt.edu/dion/server"
 	"go.uber.org/fx"
 )
@@ -21,7 +22,7 @@ var App = fx.Options(
 	models.Module,
 	fx.Invoke(
 		repository.Migrate,
-		server.SetupRouter,
+		router.SetupRouter,
 		server.NewServer,
 	),
 )

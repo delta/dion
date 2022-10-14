@@ -1,7 +1,7 @@
 db:
-  host: 
-  user:
-  password: 
+  host: localhost
+  user: postgres
+  password: postgres
   dbname: dion
   port: 5432
 prod: false
