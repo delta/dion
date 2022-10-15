@@ -22,7 +22,7 @@ type RouterParams struct {
 }
 
 func newLogger(p Params) (*zap.Logger, error) {
-	if p.Config.IsProd {
+	if p.Config.Environment == "dev" {
 		return zap.NewProduction()
 	} else {
 		return zap.NewDevelopment()

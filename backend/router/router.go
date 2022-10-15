@@ -22,7 +22,7 @@ type RouterParams struct {
 }
 
 func SetupRouter(p RouterParams) {
-	if p.Config.IsProd {
+	if p.Config.Environment == "dev" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	fmt.Println(p.Db)

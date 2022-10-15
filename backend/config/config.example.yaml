@@ -4,5 +4,4 @@ db:
   password: postgres
   dbname: dion
   port: 5432
-prod: false
-
+environment: "dev"

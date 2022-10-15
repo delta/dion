@@ -16,8 +16,8 @@ type DbConfig struct {
 }
 
 type Config struct {
-	Db     *DbConfig `yaml:"db"`
-	IsProd bool      `yaml:"prod"`
+	Db          *DbConfig `yaml:"db"`
+	Environment string    `yaml:"environment"`
 }
 
 func New() (*Config, error) {
