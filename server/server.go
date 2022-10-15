@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"delta.nitt.edu/dion/config"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -42,9 +44,16 @@ func NewServer(lc fx.Lifecycle, g *gin.Engine, logger *zap.Logger) {
 	})
 }
 
+func ginInstance() *gin.Engine {
+	r := gin.Default()
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
+	return r
+}
+
 var Module = fx.Options(
 	fx.Provide(
-		gin.Default,
+		ginInstance,
 		newLogger,
 	),
 )

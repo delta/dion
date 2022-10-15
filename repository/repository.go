@@ -32,6 +32,10 @@ func New(p Params) (*gorm.DB, error) {
 
 func Migrate(db *gorm.DB) error {
 	err := db.AutoMigrate(&models.User{})
+	if err != nil {
+		return err
+	}
+	err = db.AutoMigrate(&models.Project{})
 	return err
 }
 

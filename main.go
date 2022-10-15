@@ -7,6 +7,7 @@ import (
 	"delta.nitt.edu/dion/controllers"
 	"delta.nitt.edu/dion/middlewares"
 	"delta.nitt.edu/dion/models"
+	"delta.nitt.edu/dion/project"
 	"delta.nitt.edu/dion/repository"
 	"delta.nitt.edu/dion/router"
 	"delta.nitt.edu/dion/server"
@@ -20,6 +21,7 @@ var App = fx.Options(
 	controllers.Module,
 	middlewares.Module,
 	models.Module,
+	project.Module,
 	fx.Invoke(
 		repository.Migrate,
 		router.SetupRouter,
