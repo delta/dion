@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 
 	"delta.nitt.edu/dion/config"
@@ -13,6 +14,7 @@ import (
 type Params struct {
 	fx.In
 	Config *config.Config
+	Logger *zap.Logger
 }
 
 type RouterParams struct {
@@ -30,4 +32,11 @@ func SetupRouter(p RouterParams) {
 	p.R.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
+
+	logger := p.Logger.Sugar()
+	configurationsGroup := p.R.Group("/configurations")
+	addConfigurationRoutes(configurationsGroup, p.Db, logger)
+
+	projectsGroup := p.R.Group("/projects")
+	addProjectRoutes(projectsGroup, p.Db, logger)
 }

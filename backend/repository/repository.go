@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Params struct {
+type 	Params struct {
 	fx.In
 	Conf   *config.Config
 	Logger *zap.Logger
@@ -31,7 +31,7 @@ func New(p Params) (*gorm.DB, error) {
 }
 
 func Migrate(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.User{})
+	err := db.AutoMigrate(&models.User{}, &models.Project{}, &models.Configuration{})
 	return err
 }
 
