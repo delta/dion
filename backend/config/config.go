@@ -2,11 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path"
-	"runtime"
-
-	"gopkg.in/yaml.v3"
 )
 
 type DbConfig struct {
@@ -19,8 +14,8 @@ type DbConfig struct {
 
 type ServerConfig struct {
 	Port         int `yaml:"port"`
-	ReadTimeout  int    `yaml:"readtimeout"`
-	WriteTimeout int    `yaml:"writetimeout"`
+	ReadTimeout  int `yaml:"readtimeout"`
+	WriteTimeout int `yaml:"writetimeout"`
 }
 type Config struct {
 	Db          *DbConfig     `yaml:"db"`
@@ -28,9 +23,7 @@ type Config struct {
 	Server      *ServerConfig `yaml:"server"`
 }
 
-var (
-	C Config
-)
+var C Config
 
 func init() {
 	fmt.Println("==> SETTING UP CONFIG")
@@ -40,18 +33,4 @@ func init() {
 			" correct keys", err)
 		panic(errMsg)
 	}
-}
-
-func loadConfig() error {
-	// fmt.Println(runtime.Caller(1))
-	_, filename, _, _ := 	runtime.Caller(1)
-	filePath := path.Join(path.Dir(filename), "config.yaml")
-	yamlFile, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-	conf := Config{}
-	err = yaml.Unmarshal(yamlFile, &conf)
-	C = conf
-	return err
 }

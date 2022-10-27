@@ -15,26 +15,25 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var (
-	// zap.Logger instance which can be used to create logs
-	//
-	// L is only instantiated only when the Setup() function is called
-	L *zap.Logger
-)
+// zap.Logger instance which can be used to create logs
+//
+// L is only instantiated only when the Setup() function is called
+var L *zap.Logger
 
 // parameters which needs to be passed to Setup function when
 // logger is being created
 type loggerOption struct {
-	Level zapcore.LevelEnabler
+	Level      zapcore.LevelEnabler
 	zapOptions []zap.Option
 }
+
 // Interface for all the logging option to be passed to
 // comply with zap.LoggingOptions
 type LoggerOptions interface {
 	applyLoggerOption(l *loggerOption)
 }
 
-type loggerOptionFunc func( *loggerOption)
+type loggerOptionFunc func(*loggerOption)
 
 func (f loggerOptionFunc) applyLoggerOption(opts *loggerOption) {
 	f(opts)
@@ -54,7 +53,7 @@ func Level(level zapcore.LevelEnabler) LoggerOptions {
 }
 
 // Initializes the logger according to the environment
-func Setup( opts ...LoggerOptions) {
+func Setup(opts ...LoggerOptions) {
 	if config.C.Environment == "dev" {
 		SetupDevLogger(opts...)
 	} else {
@@ -81,7 +80,7 @@ func SetupDevLogger(opts ...LoggerOptions) {
 			os.Stdout,
 			cfg.Level,
 		),
-		cfg.zapOptions...
+		cfg.zapOptions...,
 	)
 }
 
@@ -103,14 +102,14 @@ func SetupProdLogger(opts ...LoggerOptions) {
 			os.Stdout,
 			cfg.Level,
 		),
-		cfg.zapOptions...
+		cfg.zapOptions...,
 	)
-
 }
 
 // Flushes the logger's buffer
 //
 // It should be called after Setup as a defer,
+//
 //	logging.Setup(...)
 //	defer logging.Flush()
 func Flush() {
@@ -118,11 +117,15 @@ func Flush() {
 }
 
 // Method to access sugared logger
-// 
-// Instead of 
-// 	logging.L.Sugar().Info("hello world")
+//
+// Instead of
+//
+//	logging.L.Sugar().Info("hello world")
+//
 // use,
-// 	logging.Sugared().Info("hello world")
+//
+//	logging.Sugared().Info("hello world")
+//
 // this makes the code cleaner
 func Sugared() *zap.SugaredLogger {
 	return L.Sugar()
