@@ -18,19 +18,20 @@ type ServerConfig struct {
 	WriteTimeout int `yaml:"writetimeout"`
 }
 type Config struct {
-	Db          *DbConfig     `yaml:"db"`
-	Environment string        `yaml:"environment"`
-	Server      *ServerConfig `yaml:"server"`
+	Db          DbConfig     `yaml:"db"`
+	Environment string       `yaml:"environment"`
+	Server      ServerConfig `yaml:"server"`
 }
 
 var C Config
 
 func init() {
-	fmt.Println("==> SETTING UP CONFIG")
-	if err := loadConfig(); err != nil {
-		errMsg := fmt.Errorf("unable to load config due to %+v."+
-			"Check if the you have have created config.yaml with the"+
-			" correct keys", err)
+	// filepath.S
+	fmt.Println("== SETTING UP CONFIG ==")
+	conf, err := loadConfig()
+	if err != nil {
+		errMsg := fmt.Errorf("unable to load config due to %+v", err)
 		panic(errMsg)
 	}
+	C = *conf
 }
