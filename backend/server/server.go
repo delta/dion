@@ -13,7 +13,8 @@ import (
 func StartServer() {
 	router := router.InitRouter()
 	maxHeaderBytes := 1 << 20
-	logging.Sugared().Infof("Starting the server and listening on port %d", config.C.Server.Port)
+
+	// errorLoggerZap := logging.Sugared().Named("gin error:")
 
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", config.C.Server.Port),
@@ -21,7 +22,7 @@ func StartServer() {
 		ReadTimeout:    (time.Duration(config.C.Server.ReadTimeout)) * (time.Second),
 		WriteTimeout:   (time.Duration(config.C.Server.WriteTimeout)) * (time.Second),
 		MaxHeaderBytes: maxHeaderBytes,
-		// ErrorLog: (*log.Logger)(logging.L.Named("gin error:")),
+		ErrorLog:       nil,
 	}
 	logging.Sugared().Infof("Starting the server and listening on port %d", config.C.Server.Port)
 	s.ListenAndServe()

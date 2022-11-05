@@ -1,3 +1,6 @@
 package config
 
-var LoadConfig = loadConfig
+var (
+	LoadConfig = loadConfig
+	Merge      = merge
+)

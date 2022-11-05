@@ -26,7 +26,6 @@ type Config struct {
 var C Config
 
 func init() {
-	// filepath.S
 	fmt.Println("== SETTING UP CONFIG ==")
 	conf, err := loadConfig()
 	if err != nil {

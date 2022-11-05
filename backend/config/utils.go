@@ -22,23 +22,26 @@ func unmarshallYaml(file string) (map[string]interface{}, error) {
 	return res, nil
 }
 
-func combine(baseConf interface{}, extraConf interface{}) interface{} {
+// if both are maps, it'll perform merging,else it'll return extraConf.
+// This is because we want the more specific configuration to override
+// the base config
+func mergeIfBothMaps(baseConf interface{}, extraConf interface{}) interface{} {
 	extraConfAsMap, _ := extraConf.(map[string]interface{})
 	baseConfAsMap, ok := baseConf.(map[string]interface{})
 	if !ok {
 		return baseConfAsMap
 	} else {
-		return mergeConfigs(baseConfAsMap, extraConfAsMap)
+		return merge(baseConfAsMap, extraConfAsMap)
 	}
 }
 
-func mergeConfigs(baseConfig map[string]interface{}, extraConfig map[string]interface{}) map[string]interface{} {
+func merge(baseConfig map[string]interface{}, extraConfig map[string]interface{}) map[string]interface{} {
 	for key, val := range extraConfig {
 		_, ok := baseConfig[key]
 		if ok {
 			_, ok := val.(map[string]interface{})
 			if ok {
-				baseConfig[key] = combine(baseConfig[key], val)
+				baseConfig[key] = mergeIfBothMaps(baseConfig[key], val)
 			} else {
 				baseConfig[key] = val
 			}
@@ -69,10 +72,6 @@ func loadConfig() (*Config, error) {
 
 	envSpecifiConfiFileName := filepath.Join("config", fmt.Sprintf("config.%s.yaml", env))
 	baseConfigFileName := filepath.Join("config", "config.base.yaml")
-	// fmt.Println(os.Getwd())
-	// fmt.Println(envSpecifiConfiFileName, baseConfigFileName)
-	// envSpecifiConfiFileName = fmt.Sprintf("%s/config/config.%s.yaml", basePath, env)
-	// baseConfigFileName := fmt.Sprintf("%s/config/config.base.yaml", basePath)
 
 	baseConfig, err := unmarshallYaml(baseConfigFileName)
 	if err != nil {
@@ -82,7 +81,7 @@ func loadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	mergedConfig := mergeConfigs(baseConfig, envSpecifiConfig)
+	mergedConfig := merge(baseConfig, envSpecifiConfig)
 	conf := Config{}
 	marshalledMergedConf, err := yaml.Marshal(mergedConfig)
 	if err != nil {
