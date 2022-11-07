@@ -9,10 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var db *gorm.DB
 
-var (
-	db *gorm.DB
-)
 // connects to postgres db and runs migrations
 func init() {
 	fmt.Println("==>INITIALIZING DATABASE")
