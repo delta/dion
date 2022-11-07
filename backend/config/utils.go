@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -87,7 +88,12 @@ func loadConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	yaml.Unmarshal(marshalledMergedConf, &conf)
+	// decoder := yaml.NewDecoder(strings.NewReader(string(marshalledMergedConf)))
+	decoder := yaml.NewDecoder(bytes.NewReader(marshalledMergedConf))
+	decoder.KnownFields(true)
+	if err = decoder.Decode(&conf); err != nil {
+		return nil, err
+	}
 
 	return &conf, nil
 }
