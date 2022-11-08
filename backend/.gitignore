@@ -17,3 +17,5 @@ config/config.yaml
 
 # air build files
 build
+
+.docker/volumes
