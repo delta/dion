@@ -1,50 +1,28 @@
 package server
 
 import (
-	"context"
+	"fmt"
+	"net/http"
+	"time"
 
 	"delta.nitt.edu/dion/config"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
+	"delta.nitt.edu/dion/router"
+	"delta.nitt.edu/dion/services/logging"
 )
 
-type Params struct {
-	fx.In
-	Config *config.Config
-}
+func StartServer() {
+	router := router.InitRouter()
+	maxHeaderBytes := 1 << 20
+	logging.Sugared().Infof("Starting the server and listening on port %d", config.C.Server.Port)
 
-type RouterParams struct {
-	Params
-	R  *gin.Engine
-	Db *gorm.DB
-}
-
-func newLogger(p Params) (*zap.Logger, error) {
-	if p.Config.Environment == "dev" {
-		return zap.NewProduction()
-	} else {
-		return zap.NewDevelopment()
+	s := &http.Server{
+		Addr:           fmt.Sprintf(":%d", config.C.Server.Port),
+		Handler:        router,
+		ReadTimeout:    (time.Duration(config.C.Server.ReadTimeout)) * (time.Second),
+		WriteTimeout:   (time.Duration(config.C.Server.WriteTimeout)) * (time.Second),
+		MaxHeaderBytes: maxHeaderBytes,
+		// ErrorLog: (*log.Logger)(logging.L.Named("gin error:")),
 	}
+	logging.Sugared().Infof("Starting the server and listening on port %d", config.C.Server.Port)
+	s.ListenAndServe()
 }
-
-func NewServer(lc fx.Lifecycle, g *gin.Engine, logger *zap.Logger) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			logger.Sugar().Infow("Starting Server")
-			return g.Run(":8000")
-		},
-		OnStop: func(ctx context.Context) error {
-			logger.Sugar().Infow("Stopping Server")
-			return nil
-		},
-	})
-}
-
-var Module = fx.Options(
-	fx.Provide(
-		gin.Default,
-		newLogger,
-	),
-)
