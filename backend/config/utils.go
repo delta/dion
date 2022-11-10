@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"path"
+	"runtime"
 
 	"gopkg.in/yaml.v3"
 )
@@ -71,8 +72,9 @@ func loadConfig() (*Config, error) {
 		env = "dev"
 	}
 
-	envSpecifiConfiFileName := filepath.Join("config", fmt.Sprintf("config.%s.yaml", env))
-	baseConfigFileName := filepath.Join("config", "config.base.yaml")
+	_, filename, _, _ := runtime.Caller(1)
+	envSpecifiConfiFileName := path.Join(path.Dir(filename), fmt.Sprintf("config.%s.yaml", env))
+	baseConfigFileName := path.Join(path.Dir(filename), "config.base.yaml")
 
 	baseConfig, err := unmarshallYaml(baseConfigFileName)
 	if err != nil {

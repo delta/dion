@@ -6,11 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/goleak"
-
-	// this is so that the current working directory will
-	// be root directory, it's causing problem in tests,
-	// so had to do this, refer to the package to see what this does
-	_ "delta.nitt.edu/dion/testing"
 )
 
 func Test(t *testing.T) {
