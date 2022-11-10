@@ -5,38 +5,45 @@ import (
 
 	"delta.nitt.edu/dion/config"
 	"delta.nitt.edu/dion/models"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-type Params struct {
-	fx.In
-	Conf   *config.Config
-	Logger *zap.Logger
+
+var (
+	db *gorm.DB
+)
+// connects to postgres db and runs migrations
+func init() {
+	fmt.Println("==>INITIALIZING DATABASE")
+	if err := connect(); err != nil {
+		errMsg := fmt.Errorf("unable to connect to db because %+v", err)
+		panic(errMsg)
+	}
+	fmt.Println("==>RUNNING MIGRATIONS")
+	if err := autoMigrate(); err != nil {
+		errMsg := fmt.Errorf("unable to run migrations due to %+v", err)
+		panic(errMsg)
+	}
 }
 
-func New(p Params) (*gorm.DB, error) {
+// connects to the database using config, and returns error if any
+func connect() error {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Kolkata",
-		p.Conf.Db.Host,
-		p.Conf.Db.User,
-		p.Conf.Db.Password,
-		p.Conf.Db.DbName,
-		p.Conf.Db.Port,
+		config.C.Db.Host,
+		config.C.Db.User,
+		config.C.Db.Password,
+		config.C.Db.DbName,
+		config.C.Db.Port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	return db, err
-}
-
-func Migrate(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.User{})
+	conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db = conn
 	return err
 }
 
-var Module = fx.Options(
-	fx.Provide(
-		New,
-	),
-)
+// runs auto-migration, and returns error if any
+func autoMigrate() error {
+	err := db.AutoMigrate(&models.User{})
+	return err
+}
