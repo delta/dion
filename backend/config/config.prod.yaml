@@ -1,1 +1,6 @@
 environment: prod
+db:
+  host: ${POSTGRES_HOST}
+  user: ${POSTGRES_USER}
+  password: ${POSTGRES_PW}
+  dbname: ${POSTGRES_DB}

@@ -12,7 +12,7 @@ import (
 var db *gorm.DB
 
 // connects to postgres db and runs migrations
-func init() {
+func Init() {
 	fmt.Println("==>INITIALIZING DATABASE")
 	if err := connect(); err != nil {
 		errMsg := fmt.Errorf("unable to connect to db because %+v", err)

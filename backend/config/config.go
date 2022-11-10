@@ -1,5 +1,7 @@
 package config
 
+// Please go through the config_test.go to understand how config works
+
 import (
 	"fmt"
 )
@@ -33,4 +35,5 @@ func init() {
 		panic(errMsg)
 	}
 	C = *conf
+	fmt.Printf("%#v\n", C)
 }
