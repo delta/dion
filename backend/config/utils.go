@@ -162,7 +162,7 @@ func loadConfig() (*Config, error) {
 	// ENV should be only dev|prod|test
 	possible := []string{"dev", "prod", "test", ""}
 
-	env := os.Getenv("ENV")
+	env := string(bytes.ToLower([]byte(os.Getenv("ENV"))))
 
 	valid := false
 	for _, elem := range possible {
