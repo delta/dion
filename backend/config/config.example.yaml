@@ -1,0 +1,11 @@
+db:
+  host: ${POSTGRES_HOST:localhost}
+  user: ${POSTGRES_USER:postgres}
+  password: ${POSTGRES_PW:example}
+  dbname: ${POSTGRES_DB:dion}
+  port: 5432
+server:
+  port: 8000
+  readtimeout: 10
+  writetimeout: 10
+environment: ${ENV:-dev}

@@ -14,30 +14,51 @@ import (
 )
 
 type envAndDefault struct {
-	envName        string
-	envVal         string
-	defaultVal     string
-	defaultOnEmpty bool
-	notDefined     bool
+	envVarName        string
+	envVarVal         string
+	defaultVal        string
+	setDefaultOnEmpty bool
+	notDefined        bool
 }
 
-func getEnvAndDefaultValue(s []byte, lineNo *int, charNo *int, i *int) (*envAndDefault, error) {
-	startLine := *lineNo
-	startChar := *charNo
+type parseState struct {
+	src       []byte
+	curLineNo int
+	curCharNo int
+	curIndex  int
+}
+
+// After we encounter a ${ in the yaml, we let this function take over.
+// This will take in the current state, consume the yaml until we reach the '}'.
+// Semantics:
+//
+//   - ${ENV} => This means we'll check environment variable "ENV" and set the value to whatever it is.
+//     If it is empty or unset, it'll be set to that
+//
+//   - ${ENV:dev} => This means if environment variable "ENV" is not set, we'll use the default
+//     value i.e "dev"
+//
+//   - ${ENV:-dev} => This means if environment variable "ENV" is not set or is set to
+//     empty string,we'll use the default value "dev"
+//
+//     For further information ,see the tests or understand the source code
+func parseEnvVarAndDefault(state *parseState) (*envAndDefault, error) {
+	startLine := state.curLineNo
+	startChar := state.curCharNo
 	insideBraces := []byte{}
 	broken := false
-	for ; *i < len(s); *i++ {
-		if s[*i] == '}' {
-			*charNo++
+	for ; state.curIndex < len(state.src); state.curIndex++ {
+		if state.src[state.curIndex] == '}' {
+			state.curCharNo++
 			broken = true
 			break
 		} else {
-			if s[*i] == '\n' {
-				*lineNo++
-				*charNo = -1
+			if state.src[state.curIndex] == '\n' {
+				state.curLineNo++
+				state.curCharNo = -1
 			}
-			*charNo++
-			insideBraces = append(insideBraces, s[*i])
+			state.curCharNo++
+			insideBraces = append(insideBraces, state.src[state.curIndex])
 		}
 	}
 	if !broken {
@@ -48,11 +69,11 @@ func getEnvAndDefaultValue(s []byte, lineNo *int, charNo *int, i *int) (*envAndD
 	envVal, foundEnv := os.LookupEnv(string(envVarName))
 	if !found {
 		return &envAndDefault{
-			envName:        string(envVarName),
-			envVal:         envVal,
-			defaultVal:     "",
-			defaultOnEmpty: true,
-			notDefined:     !foundEnv,
+			envVarName:        string(envVarName),
+			envVarVal:         envVal,
+			defaultVal:        "",
+			setDefaultOnEmpty: true,
+			notDefined:        !foundEnv,
 		}, nil
 	} else {
 		defaultOnEmpty := false
@@ -61,105 +82,67 @@ func getEnvAndDefaultValue(s []byte, lineNo *int, charNo *int, i *int) (*envAndD
 			defaultOnEmpty = true
 		}
 		return &envAndDefault{
-			envName:        string(envVarName),
-			envVal:         envVal,
-			defaultVal:     string(defaultValue),
-			defaultOnEmpty: defaultOnEmpty,
-			notDefined:     !foundEnv,
+			envVarName:        string(envVarName),
+			envVarVal:         envVal,
+			defaultVal:        string(defaultValue),
+			setDefaultOnEmpty: defaultOnEmpty,
+			notDefined:        !foundEnv,
 		}, nil
 	}
 }
 
-func handleEnvVarAndDefaultValues(s []byte) []byte {
+// This function can panic
+func handleEnvVarAndDefaultValues(src []byte) []byte {
 	result := []byte{}
-	lineNo := 1
-	charNo := 0
-	for i := 0; i < len(s); i++ {
-		if s[i] == '\n' {
-			lineNo++
-			charNo = -1
+	state := parseState{
+		src:       src,
+		curLineNo: 1,
+		curCharNo: 0,
+		curIndex:  0,
+	}
+	for ; state.curIndex < len(state.src); state.curIndex++ {
+		if state.src[state.curIndex] == '\n' {
+			state.curLineNo++
+			state.curCharNo = -1
 		}
-		charNo += 1
-		if s[i] == '$' {
+		state.curCharNo += 1
+		if state.src[state.curIndex] == '$' {
 			// For escaping the $,it must be \$
-			if i != 0 && s[i-1] == '\\' {
+			if state.curIndex != 0 && state.src[state.curIndex-1] == '\\' {
 				result[len(result)-1] = '$'
 				continue
 			}
-			i++
-			if len(s) == i || s[i] != '{' {
+			state.curIndex++
+			if len(state.src) == state.curIndex || state.src[state.curIndex] != '{' {
 				panic("Expected { after $, If you want $, escape it")
 			}
-			i++
-			envAndDef, err := getEnvAndDefaultValue(s, &lineNo, &charNo, &i)
+			state.curIndex++
+			envAndDef, err := parseEnvVarAndDefault(&state)
 			if err != nil {
 				panic(err)
 			}
-			if len(envAndDef.envVal) == 0 && len(envAndDef.defaultVal) == 0 {
+			if len(envAndDef.envVarVal) == 0 && len(envAndDef.defaultVal) == 0 {
 				log.New(os.Stderr, "[Config Warning]", log.LstdFlags).Printf(
 					"Env %s has both env variable empty and default value empty",
-					envAndDef.envName,
+					envAndDef.envVarName,
 				)
 			}
 			if envAndDef.notDefined {
 				result = append(result, []byte(envAndDef.defaultVal)...)
-			} else if len(envAndDef.envVal) == 0 && envAndDef.defaultOnEmpty {
+			} else if len(envAndDef.envVarVal) == 0 && envAndDef.setDefaultOnEmpty {
 				result = append(result, []byte(envAndDef.defaultVal)...)
 			} else {
-				result = append(result, []byte(envAndDef.envVal)...)
+				result = append(result, []byte(envAndDef.envVarVal)...)
 			}
 		} else {
-			result = append(result, s[i])
+			result = append(result, state.src[state.curIndex])
 		}
 	}
 	return result
 }
 
-func unmarshallYaml(file string) (map[string]interface{}, error) {
-	yamlContent, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	// yamlContent = []byte(os.ExpandEnv(string(yamlContent)))
-	yamlContent = handleEnvVarAndDefaultValues(yamlContent)
-	res := make(map[string]interface{})
-	if err := yaml.Unmarshal(yamlContent, &res); err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-// if both are maps, it'll perform merging,else it'll return extraConf.
-// This is because we want the more specific configuration to override
-// the base config
-func mergeIfBothMaps(baseConf interface{}, extraConf interface{}) interface{} {
-	extraConfAsMap, _ := extraConf.(map[string]interface{})
-	baseConfAsMap, ok := baseConf.(map[string]interface{})
-	if !ok {
-		return extraConfAsMap
-	} else {
-		return merge(baseConfAsMap, extraConfAsMap)
-	}
-}
-
-func merge(baseConfig map[string]interface{}, extraConfig map[string]interface{}) map[string]interface{} {
-	for key, val := range extraConfig {
-		_, ok := baseConfig[key]
-		if ok {
-			_, ok := val.(map[string]interface{})
-			if ok {
-				baseConfig[key] = mergeIfBothMaps(baseConfig[key], val)
-			} else {
-				baseConfig[key] = val
-			}
-		} else {
-			baseConfig[key] = val
-		}
-	}
-	return baseConfig
-}
-
-func loadConfig() (*Config, error) {
+func panicIfNotValidENV() {
+	//
 	// ENV should be only dev|prod|test
 	possible := []string{"dev", "prod", "test", ""}
 
@@ -172,31 +155,26 @@ func loadConfig() (*Config, error) {
 	if !valid {
 		panic("ENV environment variable should be one of prod|dev|test")
 	}
+}
 
-	if len(env) == 0 {
-		env = "dev"
-	}
+func loadConfig() (*Config, error) {
+	panicIfNotValidENV()
 
 	_, filename, _, _ := runtime.Caller(1)
-	envSpecifiConfiFileName := path.Join(path.Dir(filename), fmt.Sprintf("config.%s.yaml", env))
-	baseConfigFileName := path.Join(path.Dir(filename), "config.base.yaml")
+	configFileName := path.Join(path.Dir(filename), "config.yaml")
 
-	baseConfig, err := unmarshallYaml(baseConfigFileName)
+	yamlContent, err := ioutil.ReadFile(configFileName)
 	if err != nil {
 		return nil, err
 	}
-	envSpecifiConfig, err := unmarshallYaml(envSpecifiConfiFileName)
-	if err != nil {
-		return nil, err
-	}
-	mergedConfig := merge(baseConfig, envSpecifiConfig)
+
+	yamlContent = handleEnvVarAndDefaultValues(yamlContent)
+
 	conf := Config{}
-	marshaledMergedConf, err := yaml.Marshal(mergedConfig)
 	if err != nil {
 		return nil, err
 	}
-	// decoder := yaml.NewDecoder(strings.NewReader(string(marshaledMergedConf)))
-	decoder := yaml.NewDecoder(bytes.NewReader(marshaledMergedConf))
+	decoder := yaml.NewDecoder(bytes.NewReader(yamlContent))
 	decoder.KnownFields(true)
 	if err = decoder.Decode(&conf); err != nil {
 		return nil, err

@@ -1,3 +1,0 @@
-environment: test
-db:
-  host: ${DB_HOST}

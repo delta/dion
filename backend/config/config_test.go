@@ -10,49 +10,6 @@ import (
 )
 
 func Test(t *testing.T) {
-	t.Run("Merge test", func(t *testing.T) {
-		type msi = map[string]interface{}
-
-		m1 := msi{
-			"a": msi{"b": "c"},
-			"c": "d",
-		}
-		m2 := msi{
-			"b": "d",
-			"a": msi{
-				"e": "f",
-			},
-			"c": msi{
-				"f": "g",
-			},
-		}
-
-		mergedMap := merge(m1, m2)
-
-		resultantMap := msi{
-			"a": msi{
-				"b": "c",
-				"e": "f",
-			},
-			"b": "d",
-			"c": msi{
-				"f": "g",
-			},
-		}
-
-		assert.Equal(t, mergedMap, resultantMap)
-	})
-
-	t.Run("Base Config and Env Specific config merging check", func(t *testing.T) {
-		dbHost := "random_value_for_testing"
-		t.Setenv("DB_HOST", dbHost)
-		conf, err := loadConfig()
-		if err != nil {
-			t.Error(err)
-		}
-		assert.Equal(t, "test", conf.Environment)
-		assert.Equal(t, dbHost, conf.Db.Host)
-	})
 	t.Run("handleEnvVarAndDefaultValues works properly", func(t *testing.T) {
 		yamlContent := "x: ${X:x}\ny: ${Y:-y}\nz: ${Z:}\na: ${A}\nb: ${B}\nc: ${C:-c}\nd: ${D:-d}"
 		// Gets the env var

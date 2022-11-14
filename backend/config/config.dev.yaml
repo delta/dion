@@ -1,6 +1,0 @@
-environment: dev
-db:
-  host: ${POSTGRES_HOST:-localhost}
-  user: ${POSTGRES_USER:-postgres}
-  password: ${POSTGRES_PW:-example}
-  dbname: ${POSTGRES_DB:-dion}
