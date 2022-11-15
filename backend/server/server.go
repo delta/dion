@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"delta.nitt.edu/dion/config"
+	"delta.nitt.edu/dion/server/routes"
 	"delta.nitt.edu/dion/services/logging"
 	"github.com/gin-gonic/gin"
 )
@@ -16,18 +17,29 @@ func InitRouter() *gin.Engine {
 	}
 
 	router := gin.Default()
-	for _, route := range routes {
-		switch route.Method {
-		case http.MethodGet:
-			router.GET(route.Pattern, route.HandlerFunc)
-		case http.MethodPost:
-			router.POST(route.Pattern, route.HandlerFunc)
-		case http.MethodPut:
-			router.PUT(route.Pattern, route.HandlerFunc)
-		case http.MethodPatch:
-			router.PATCH(route.Pattern, route.HandlerFunc)
-		case http.MethodDelete:
-			router.DELETE(route.Pattern, route.HandlerFunc)
+	routes.InitRoutes()
+	for group, routeList := range routes.RouteMap {
+		rg := router.Group(group)
+		rg.Use(routeList.GlobalMiddleware...)
+		for _, route := range routeList.Routes {
+			var handlerFunc []gin.HandlerFunc
+			if route.Middleware == nil {
+				handlerFunc = []gin.HandlerFunc{route.HandlerFunc}
+			} else {
+				handlerFunc = append(route.Middleware, route.HandlerFunc)
+			}
+			switch route.Method {
+			case http.MethodGet:
+				rg.GET(route.Pattern, handlerFunc...)
+			case http.MethodPost:
+				rg.POST(route.Pattern, handlerFunc...)
+			case http.MethodPut:
+				rg.PUT(route.Pattern, handlerFunc...)
+			case http.MethodPatch:
+				rg.PATCH(route.Pattern, handlerFunc...)
+			case http.MethodDelete:
+				rg.DELETE(route.Pattern, handlerFunc...)
+			}
 		}
 	}
 
