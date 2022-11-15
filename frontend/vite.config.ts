@@ -1,10 +1,8 @@
-import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
-import { qwikCity } from '@builder.io/qwik-city/vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import wasmPack from 'vite-plugin-wasm-pack';
 
-export default defineConfig(() => {
-  return {
-    plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
-  };
-});
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react(), wasmPack("./encrypt")]
+})
