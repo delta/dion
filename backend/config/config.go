@@ -1,12 +1,20 @@
+//		config.yaml variable meanings
+//
+//	 - ${ENV} => This means we'll check environment variable "ENV" and set the value to whatever it is.
+//	   If it is empty or unset, it'll be set to that
+//
+//	 - ${ENV:dev} => This means if environment variable "ENV" is not set, we'll use the default
+//	   value i.e "dev"
+//
+//	 - ${ENV:-dev} => This means if environment variable "ENV" is not set or is set to
+//	   empty string,we'll use the default value "dev"
+//
+//	   For further information ,see the tests or understand the source code
+//	  or go through the config_test.go to understand how config works
 package config
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path"
-	"runtime"
-
-	"gopkg.in/yaml.v3"
 )
 
 type DbConfig struct {
@@ -19,39 +27,24 @@ type DbConfig struct {
 
 type ServerConfig struct {
 	Port         int `yaml:"port"`
-	ReadTimeout  int    `yaml:"readtimeout"`
-	WriteTimeout int    `yaml:"writetimeout"`
+	ReadTimeout  int `yaml:"readtimeout"`
+	WriteTimeout int `yaml:"writetimeout"`
 }
 type Config struct {
-	Db          *DbConfig     `yaml:"db"`
-	Environment string        `yaml:"environment"`
-	Server      *ServerConfig `yaml:"server"`
+	Db          DbConfig     `yaml:"db"`
+	Environment string       `yaml:"environment"`
+	Server      ServerConfig `yaml:"server"`
 }
 
-var (
-	C Config
-)
+var C Config
 
 func init() {
-	fmt.Println("==> SETTING UP CONFIG")
-	if err := loadConfig(); err != nil {
-		errMsg := fmt.Errorf("unable to load config due to %+v."+
-			"Check if the you have have created config.yaml with the"+
-			" correct keys", err)
+	fmt.Println("== SETTING UP CONFIG ==")
+	conf, err := loadConfig()
+	if err != nil {
+		errMsg := fmt.Errorf("unable to load config due to %+v", err)
 		panic(errMsg)
 	}
-}
-
-func loadConfig() error {
-	// fmt.Println(runtime.Caller(1))
-	_, filename, _, _ := 	runtime.Caller(1)
-	filePath := path.Join(path.Dir(filename), "config.yaml")
-	yamlFile, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-	conf := Config{}
-	err = yaml.Unmarshal(yamlFile, &conf)
-	C = conf
-	return err
+	C = *conf
+	fmt.Printf("%#v\n", C)
 }

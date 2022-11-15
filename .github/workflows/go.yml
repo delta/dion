@@ -18,11 +18,8 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Init Config
-      run: cd backend; cp config/config.example.yaml config/config.yaml
-
     - name: Build
-      run: cd backend; go build -v ./...
+      run: cd backend; cp config/config.example.yaml config/config.yaml; go build -v ./...
 
     - name: Test
-      run: cd backend; go test -v ./...
+      run: cd backend; ENV=test go test -v ./...
