@@ -1,14 +1,13 @@
-package server
+package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 // TODO: Annonate so that we can generate open-api specification
 
 // Route is the information for every URI.
+
 type Route struct {
 	// Name is the name of this Route.
 	Name string
@@ -18,30 +17,23 @@ type Route struct {
 	Pattern string
 	// HandlerFunc is the handler function of this route.
 	HandlerFunc gin.HandlerFunc
+	// Middleware function to run
+	Middleware []gin.HandlerFunc
 }
 
-// Routes is the list of the generated Route.
+// Routes is a list of Routes.
 type Routes []Route
 
-func Index(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "Helloo")
+type RouteGroup struct {
+	// List of all routes belonging to the group
+	Routes Routes
+	// List of middleware to be added to the group
+	GlobalMiddleware []gin.HandlerFunc
 }
 
-func Ping(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "pong")
-}
+var RouteMap map[string]RouteGroup
 
-var routes = Routes{
-	{
-		"Index",
-		http.MethodGet,
-		"/",
-		Index,
-	},
-	{
-		"Ping",
-		http.MethodGet,
-		"/ping",
-		Ping,
-	},
+func InitRoutes() {
+	RouteMap = make(map[string]RouteGroup)
+	initDefault()
 }
