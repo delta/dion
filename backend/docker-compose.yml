@@ -4,6 +4,7 @@ services:
     container_name: dion-server
     build:
       context: .
+      target: prod
     ports:
       - "8000:8000"
     depends_on:
@@ -12,7 +13,26 @@ services:
     env_file:
         - .env
     environment:
-      - ENV=${ENV:-dev}
+      - ENV=prod
+
+
+  dev-server:
+    container_name: dion-dev-server
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+    env_file:
+        - .env
+    environment:
+      - ENV=dev
+
 
   db:
     container_name: dion-db
