@@ -16,7 +16,7 @@ func GetInt(key string, defaultVal int) int {
 	} else {
 		valueInt, err = strconv.Atoi(value)
 		if err != nil {
-			valueInt = defaultVal 
+			valueInt = defaultVal
 		}
 	}
 	return valueInt

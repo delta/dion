@@ -1,8 +1,27 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import { config } from "../../config/config";
 import { AuthContext } from "../../context/user-context";
+
+interface DataType {
+  source: string;
+  code: string;
+  state: string;
+}
+
+const characters =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+const generateString = (length: number) => {
+  let result = " ";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+};
 
 enum AuthStatusEnum {
   START,
@@ -16,6 +35,7 @@ enum AuthStatusEnum {
 const CallBack = () => {
   const navigate = useNavigate();
   const context = useContext(AuthContext);
+  const [code, setCode] = useState("");
   if (context == null) {
     return <h1>Loading</h1>;
   }
@@ -29,12 +49,14 @@ const CallBack = () => {
   // Generates A Dauth Auth url
   const generateDauthAuthorizeUrl = () => {
     const dauthAuthorizeURL = new URL("https://auth.delta.nitt.edu/authorize");
+    const c = generateString(15);
+    setCode(c);
 
     const dauthQueryParameters = {
       client_id: config.dauth.clientId,
       redirect_uri: config.dauth.redirectURI,
       response_type: "code",
-      state: "code", // TODO: Dynamically generate it
+      state: c,
       grant_type: "authorization_code",
       scope: "email+openid+profile+user",
       nonce: "this_is_nonce",
@@ -66,9 +88,9 @@ const CallBack = () => {
       if (resp.status === 200) {
         const json = await resp.json();
         context.loginUser(json.user);
-        navigate("/game")
+        navigate("/game");
       } else {
-        throw Error("Error");
+        throw Error("Couldn't get info");
       }
     } catch (err) {
       // if some error occurred its mostly because
@@ -90,13 +112,16 @@ const CallBack = () => {
       if (event.origin !== BASE_URL) {
         return;
       }
-      const { data } = event;
+      const { data }: { data: DataType } = event;
       config.env === "development" &&
         data.source === "dauth-login-callback" &&
         console.log(data);
       // // if we trust the sender and the source is our popup
       if (data.source === "dauth-login-callback") {
         // if the user
+        if (data.state !== code) {
+          setAuthStatus(AuthStatusEnum.ERROR);
+        }
         if (data.code !== null && data.code === "")
           setAuthStatus(AuthStatusEnum.REJECTED);
         else {

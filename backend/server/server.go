@@ -37,7 +37,7 @@ func InitRouter() *gin.Engine {
 	}
 	store.Options(sessions.Options{
 		Path:     "/",
-    Domain:   "localhost",
+		Domain:   "localhost",
 		MaxAge:   int(time.Duration(expiry) * time.Hour),
 		Secure:   secure,
 		HttpOnly: true,

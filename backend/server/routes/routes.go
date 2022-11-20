@@ -35,5 +35,5 @@ var RouteMap = make(map[string]RouteGroup)
 
 func InitRoutes() {
 	initDefault()
-  initAuth()
+	initAuth()
 }

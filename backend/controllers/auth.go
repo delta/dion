@@ -13,28 +13,28 @@ import (
 )
 
 type DAuthUserResponse struct {
-	Email  string           `json:"email"`
-	Name   string           `json:"name"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 func GetUser(email string) (models.User, error) {
-  fmt.Println(email)
-  return repository.GetUser(email)
+	fmt.Println(email)
+	return repository.GetUser(email)
 }
 
-func HandleCallBack(code string)  (string, error) {
-  oauthClient := oauth2.Config {
-    RedirectURL: config.C.OauthConfig.RedirectURL,
-    ClientSecret: config.C.OauthConfig.ClientSecret,
-    ClientID: config.C.OauthConfig.ClientId,
-    Scopes: []string{"email"},
+func HandleCallBack(code string) (string, error) {
+	oauthClient := oauth2.Config{
+		RedirectURL:  config.C.OauthConfig.RedirectURL,
+		ClientSecret: config.C.OauthConfig.ClientSecret,
+		ClientID:     config.C.OauthConfig.ClientId,
+		Scopes:       []string{"email"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://auth.delta.nitt.edu/authorize",
 			TokenURL: "https://auth.delta.nitt.edu/api/oauth/token",
-    },
-  }
-  token, err := oauthClient.Exchange(oauth2.NoContext, code)
-  if err != nil {
+		},
+	}
+	token, err := oauthClient.Exchange(oauth2.NoContext, code)
+	if err != nil {
 		return "", fmt.Errorf("code exchange failed: %s", err.Error())
 	}
 	req, err := http.NewRequest("POST", "https://auth.delta.nitt.edu/api/resources/user", nil)
@@ -57,13 +57,9 @@ func HandleCallBack(code string)  (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// err = repository.UpsertUser(rollNo, user.Name, user.Gender, user.Batch)
-	// if err != nil {
-	// 	return "", err
-	// }
-  err = repository.UpsertUser(user.Name, user.Email)
-  if err != nil {
-    return "", err
-  }
+	err = repository.UpsertUser(user.Name, user.Email)
+	if err != nil {
+		return "", err
+	}
 	return user.Email, nil
 }

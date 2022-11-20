@@ -14,7 +14,7 @@ func CheckAuth(ctx *gin.Context) {
 	email := session.Get("email")
 	if email == nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"status": "Please login"})
-    ctx.Abort()
+		ctx.Abort()
 		return
 	} else {
 		user, err := controllers.GetUser(email.(string))
@@ -22,7 +22,7 @@ func CheckAuth(ctx *gin.Context) {
 			session.Delete("email")
 			session.Save()
 			ctx.JSON(http.StatusBadRequest, gin.H{"status": "User not found"})
-      ctx.Abort()
+			ctx.Abort()
 			return
 		}
 		ctx.Set("user", &user)

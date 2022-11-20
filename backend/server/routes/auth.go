@@ -1,13 +1,11 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
 	"delta.nitt.edu/dion/controllers"
 	"delta.nitt.edu/dion/middleware"
 	"delta.nitt.edu/dion/models"
-	"delta.nitt.edu/dion/repository"
 	"delta.nitt.edu/dion/services/logging"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -19,11 +17,6 @@ func getUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"email": user.Email})
 }
 
-func insertUser(ctx *gin.Context) {
-	repository.InsertUser("a", "a@a.com")
-	ctx.String(http.StatusOK, "A")
-}
-
 func callBack(ctx *gin.Context) {
 	code := ctx.Query("code")
 	email, err := controllers.HandleCallBack(code)
@@ -31,9 +24,8 @@ func callBack(ctx *gin.Context) {
 		logging.Sugared().Error(err.Error())
 	}
 	session := sessions.Default(ctx)
-  session.Set("email", email)
-  err = session.Save()
-  fmt.Printf("Error is: %#v\n", err)
+	session.Set("email", email)
+	err = session.Save()
 	ctx.JSON(http.StatusOK, gin.H{"email": email})
 }
 
@@ -47,13 +39,6 @@ func initAuth() {
 				"/user",
 				getUser,
 				gin.HandlersChain{middleware.CheckAuth},
-			},
-			{
-				"InsertUser",
-				http.MethodGet,
-				"/add/user",
-				insertUser,
-				nil,
 			},
 			{
 				"CallBack",
