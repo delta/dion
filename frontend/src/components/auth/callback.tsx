@@ -77,13 +77,9 @@ const CallBack = () => {
   const sendAuthCodeToServer = useCallback(async (code: string) => {
     try {
       setAuthStatus(AuthStatusEnum.AUTH);
-      console.log("hello");
-      const resp = await fetch(
-        `http://localhost:8000/auth/callback?code=${code}`,
-        {
-          credentials: "include",
-        }
-      );
+      const resp = await fetch(`${config.apiUrl}?code=${code}`, {
+        credentials: "include",
+      });
 
       if (resp.status === 200) {
         const json = await resp.json();
@@ -197,7 +193,6 @@ const CallBack = () => {
   // and handle dauth response appropriately
   useEffect(() => {
     // if (!loading) return;
-    console.log("hi");
     generateDauthStringAndOpenUrl();
   }, [generateDauthStringAndOpenUrl, openSignInWindow]);
 

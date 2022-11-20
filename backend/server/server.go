@@ -5,11 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"delta.nitt.edu/dion/utils"
-
 	"github.com/gin-contrib/cors"
-
-	"os"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -26,28 +22,26 @@ func InitRouter() *gin.Engine {
 	}
 
 	router := gin.Default()
-	store := cookie.NewStore([]byte(os.Getenv("SECRET_KEY")))
-	expiry := utils.GetInt("JWT_EXPIRY", 24)
-	var secure bool
-	env := os.Getenv("ENVIRONMENT")
-	if env == "prod" {
-		secure = true
-	} else {
-		secure = false
+	store := cookie.NewStore([]byte(config.C.Session.SecretKey))
+	var expiry int
+	expiry = config.C.Session.ExpiryTime
+	if expiry == 0 {
+		expiry = 24
 	}
 	store.Options(sessions.Options{
 		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   int(time.Duration(expiry) * time.Hour),
-		Secure:   secure,
+		Domain:   config.C.Session.Domain,
+		MaxAge:   int((time.Duration(expiry) * time.Hour).Seconds()),
+		Secure:   true,
 		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	})
 	router.Use(sessions.Sessions("dashboardAuth", store))
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{config.C.FrontendUrl},
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin", "SameSite"},
 		AllowCredentials: true,
 	}))
 	routes.InitRoutes()

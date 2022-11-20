@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "wasm": "wasm-pack build ./encrypt --target web",
-    "dev": "yarn wasm && vite",
+    "dev": "npm run wasm && vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",

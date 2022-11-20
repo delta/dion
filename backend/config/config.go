@@ -31,6 +31,12 @@ type ServerConfig struct {
 	WriteTimeout int `yaml:"writetimeout"`
 }
 
+type SessionConfig struct {
+	SecretKey  string `yaml:"secret_key"`
+	ExpiryTime int    `yaml:"expiry_time"`
+	Domain     string `yaml:"domain"`
+}
+
 type DAuthConfig struct {
 	ClientSecret string `yaml:"client_secret"`
 	ClientId     string `yaml:"client_id"`
@@ -38,10 +44,12 @@ type DAuthConfig struct {
 }
 
 type Config struct {
-	Db          DbConfig     `yaml:"db"`
-	Environment string       `yaml:"environment"`
-	Server      ServerConfig `yaml:"server"`
-	OauthConfig DAuthConfig  `yaml:"oauth"`
+	Db          DbConfig      `yaml:"db"`
+	Environment string        `yaml:"environment"`
+	FrontendUrl string        `yaml:"frontend_url"`
+	Server      ServerConfig  `yaml:"server"`
+	OauthConfig DAuthConfig   `yaml:"oauth"`
+	Session     SessionConfig `yaml:"session"`
 }
 
 var C Config

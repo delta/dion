@@ -18,7 +18,6 @@ type DAuthUserResponse struct {
 }
 
 func GetUser(email string) (models.User, error) {
-	fmt.Println(email)
 	return repository.GetUser(email)
 }
 
