@@ -14,5 +14,6 @@ func main() {
 			zap.AddCaller(),
 		))
 	defer logging.Flush()
+  // repository.InsertUser("a", "a@a.com")
 	server.StartServer()
 }
