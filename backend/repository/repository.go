@@ -42,6 +42,6 @@ func connect() error {
 
 // runs auto-migration, and returns error if any
 func autoMigrate() error {
-	err := db.AutoMigrate(&models.User{})
+	err := db.AutoMigrate(&models.User{}, &models.Project{})
 	return err
 }

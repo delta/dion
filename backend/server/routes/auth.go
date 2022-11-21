@@ -6,6 +6,7 @@ import (
 	"delta.nitt.edu/dion/controllers"
 	"delta.nitt.edu/dion/middleware"
 	"delta.nitt.edu/dion/models"
+	"delta.nitt.edu/dion/repository"
 	"delta.nitt.edu/dion/services/logging"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -22,11 +23,19 @@ func callBack(ctx *gin.Context) {
 	email, err := controllers.HandleCallBack(code)
 	if err != nil {
 		logging.Sugared().Error(err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{})
+		return
 	}
 	session := sessions.Default(ctx)
 	session.Set("email", email)
 	err = session.Save()
 	ctx.JSON(http.StatusOK, gin.H{"email": email})
+}
+
+func deleteUser(ctx *gin.Context) {
+	userInterface, _ := ctx.Get("user")
+	user := userInterface.(*models.User)
+	repository.DeleteUser(user)
 }
 
 func initAuth() {
@@ -46,6 +55,13 @@ func initAuth() {
 				"/callback",
 				callBack,
 				nil,
+			},
+			{
+				"DeleteUser",
+				http.MethodDelete,
+				"/delete",
+				deleteUser,
+				gin.HandlersChain{middleware.CheckAuth},
 			},
 		},
 	}

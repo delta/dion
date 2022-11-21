@@ -20,3 +20,7 @@ func UpsertUser(name string, email string) error {
 	result := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&models.User{Name: name, Email: email})
 	return result.Error
 }
+
+func DeleteUser(user *models.User) error {
+	return db.Delete(user).Error
+}
