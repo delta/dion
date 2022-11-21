@@ -18,7 +18,7 @@ type Route struct {
 	// HandlerFunc is the handler function of this route.
 	HandlerFunc gin.HandlerFunc
 	// Middleware function to run
-	Middleware []gin.HandlerFunc
+	Middleware gin.HandlersChain
 }
 
 // Routes is a list of Routes.
@@ -28,12 +28,12 @@ type RouteGroup struct {
 	// List of all routes belonging to the group
 	Routes Routes
 	// List of middleware to be added to the group
-	GlobalMiddleware []gin.HandlerFunc
+	GlobalMiddleware gin.HandlersChain
 }
 
-var RouteMap map[string]RouteGroup
+var RouteMap = make(map[string]RouteGroup)
 
 func InitRoutes() {
-	RouteMap = make(map[string]RouteGroup)
 	initDefault()
+	initAuth()
 }

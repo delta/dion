@@ -1,10 +1,9 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
-// import init, {encrypt, new_key} from "encrypt";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import { AuthContextProvider } from "./context/user-context";
+import AuthPage from "./pages/auth";
 
 function App() {
-  const [count, setCount] = useState(0)
   // Dummy code that works
   // useEffect(() => {
   //   init().then(() => {
@@ -15,13 +14,14 @@ function App() {
   // })
 
   return (
-		<>
-			<h1 className="text-3xl font-bold">
-				Welcome to <span className="text-blue-400">Dion</span>
-			</h1>
-			;
-		</>
-	);
+    <AuthContextProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth/*" element={<AuthPage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthContextProvider>
+  );
 }
 
-export default App
+export default App;

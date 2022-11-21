@@ -9,3 +9,12 @@ server:
   readtimeout: 10
   writetimeout: 10
 environment: ${ENV:-dev}
+session:
+  secret_key: "abcdefg"
+  expiry_time: 24
+  domain: "localhost"
+frontend_url: "http://localhost:5173"
+oauth:
+  client_secret: ""
+  client_id: ""
+  redirect_url: "http://localhost:5173/auth-callback.html"

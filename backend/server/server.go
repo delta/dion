@@ -5,6 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+
 	"delta.nitt.edu/dion/config"
 	"delta.nitt.edu/dion/server/routes"
 	"delta.nitt.edu/dion/services/logging"
@@ -17,14 +22,36 @@ func InitRouter() *gin.Engine {
 	}
 
 	router := gin.Default()
+	store := cookie.NewStore([]byte(config.C.Session.SecretKey))
+	var expiry int
+	expiry = config.C.Session.ExpiryTime
+	if expiry == 0 {
+		expiry = 24
+	}
+	store.Options(sessions.Options{
+		Path:     "/",
+		Domain:   config.C.Session.Domain,
+		MaxAge:   int((time.Duration(expiry) * time.Hour).Seconds()),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	router.Use(sessions.Sessions("dashboardAuth", store))
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{config.C.FrontendUrl},
+		AllowMethods:     []string{"GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Access-Control-Allow-Origin", "SameSite"},
+		AllowCredentials: true,
+	}))
 	routes.InitRoutes()
 	for group, routeList := range routes.RouteMap {
 		rg := router.Group(group)
 		rg.Use(routeList.GlobalMiddleware...)
 		for _, route := range routeList.Routes {
-			var handlerFunc []gin.HandlerFunc
+			var handlerFunc gin.HandlersChain
 			if route.Middleware == nil {
-				handlerFunc = []gin.HandlerFunc{route.HandlerFunc}
+				handlerFunc = gin.HandlersChain{route.HandlerFunc}
 			} else {
 				handlerFunc = append(route.Middleware, route.HandlerFunc)
 			}
